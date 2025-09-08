@@ -1,14 +1,4 @@
 #include<iostream>
-#include<vector>
-#include<algorithm>
-template<typename It>
-void print(It begin, const It end)
-{
-    for(It it = begin; it != end; it++)
-        std::cout << *it << " ";
-    std::cout << "\n";
-}
-
 static inline int count_even(int v[], int n)
 {
     int cnt = 0;
@@ -27,6 +17,7 @@ static inline double avarage_odd(int v[], int n)
             sum += v[i];
         }
     }
+    if(cnt == 0) return 0;
     return (double)sum / cnt;
 }
 
@@ -61,4 +52,5 @@ int main()
     for(int i = 0; i < n; i++)
         cout << ans[i] << " ";
     cout << "\n";
+
 }
