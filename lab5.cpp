@@ -21,6 +21,7 @@ public:
     Employee(const Employee &other)
         : id(other.id), name(nullptr), position(nullptr), total_work_hour(other.total_work_hour)
     {
+        if (this == &other) return;
         copy_str(name, other.name);
         copy_str(position, other.position);
     }
