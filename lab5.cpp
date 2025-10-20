@@ -1,5 +1,13 @@
 #include <bits/stdc++.h>
+
 using namespace std;
+
+unsigned int id_max = 0;
+inline unsigned int get_new_id(void) {
+    assert(id_max + 1 > 0);
+    return ++id_max;
+}
+
 
 class Employee {
     unsigned int id;
@@ -9,77 +17,67 @@ class Employee {
 
 public:
     Employee()
-        : id(0), name(nullptr), position(nullptr), total_work_hour(0.0f)
+        : id(get_new_id()), name(nullptr), position(nullptr), total_work_hour(0.0f)
     {}
-    Employee(unsigned int id, char *name, char *position, float total_work_hout)
-        : id(id), name(nullptr), position(nullptr), total_work_hour(total_work_hout)
+
+    Employee(const char *name_, const char *position_, float work_hour)
+        : id(get_new_id()), name(nullptr), position(nullptr), total_work_hour(0.0f)
     {
-        copy_str(this->name, name);
-        copy_str(this->position, position);
+        set_name(name_);
+        set_position(position_);
+        set_work_hour(work_hour);
     }
 
     Employee(const Employee &other)
-        : id(other.id), name(nullptr), position(nullptr), total_work_hour(other.total_work_hour)
+        : id(get_new_id()), name(nullptr), position(nullptr), total_work_hour(other.total_work_hour)
     {
         if (this == &other) return;
-        copy_str(name, other.name);
-        copy_str(position, other.position);
-    }
-
-    void assign(const Employee &other) {
-        if (this == &other) return;
-        id = other.id;
-        total_work_hour = other.total_work_hour;
-        copy_str(name, other.name);
-        copy_str(position, other.position);
+        set_name(other.name);
+        set_position(other.position);
+        set_work_hour(other.total_work_hour);
     }
 
     ~Employee() {
         delete[] name;
         delete[] position;
     }
-    void read() {
-        cout << "Ajilchnii medeelludig oruulna uu" << endl;
-        cout << "Dugaar (id): ";
-        cin >> id;
+
+    bool read() {
+        cout << "Ajilchnii medeelludig oruulna uu\n";
+        unsigned int tmp_id;
+        while (true) {
+            cout << "id: (0 gej oruulval automataar songono)" << flush;
+            cin >> tmp_id;
+            if (set_id(tmp_id)) break;
+            cout << "Id davhtssan bain. Dahin oroldnu!" << endl;
+        }
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-        char tmp[100];
+        bool ok = true;
+
+        char tmp[200];
         cout << "Ner: ";
         cin.getline(tmp, sizeof(tmp));
-        copy_str(name, tmp);
+        ok &= set_name(tmp);
 
         cout << "Alban tushaal: ";
         cin.getline(tmp, sizeof(tmp));
-        copy_str(position, tmp);
+        ok &= set_position(tmp);
 
         cout << "Ajilsan tsag: ";
-        cin >> total_work_hour;
+        float wh;
+        cin >> wh;
+        ok &= set_work_hour(wh);
+        return ok;
     }
 
-    void read_rest()
-    {
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        char tmp[100];
-        cout << "Ner: ";
-        cin.getline(tmp, sizeof(tmp));
-        copy_str(name, tmp);
-
-        cout << "Alban tushaal: ";
-        cin.getline(tmp, sizeof(tmp));
-        copy_str(position, tmp);
-
-        cout << "Ajilsan tsag: ";
-        cin >> total_work_hour;
-    }
 
     void print() const {
         cout << id << " dugaartai ajiltnii medeelel\n";
         cout << "Ner: " << (name ? name : "") << "\n";
         cout << "Alban tushaal: " << (position ? position : "") << "\n";
-        cout << "Ajilsan tsag: " << fixed << setprecision(2) << total_work_hour << endl;
-        cout << "Tsaling: " << fixed << setprecision(2) << get_salary() << endl;
+        cout << "Ajilsan tsag: " << fixed << setprecision(2) << total_work_hour << '\n';
+        cout << "Tsaling: " << fixed << setprecision(2) << get_salary() << '\n';
     }
 
     float get_salary() const {
@@ -91,6 +89,7 @@ public:
 
     bool add_hour(float work_hour) {
         if (work_hour < 0 || work_hour > 24) return false;
+        if (total_work_hour + work_hour > 31 * 24) return false;
         total_work_hour += work_hour;
         return true;
     }
@@ -100,13 +99,51 @@ public:
     const char* get_name() const { return name ? name : ""; }
     const char* get_pos() const { return position ? position : ""; }
 
-    void set_id(unsigned int new_id) { id = new_id; }
-    void set_name(const char* new_name) { copy_str(name, new_name ? new_name : ""); }
-    void set_position(const char* new_position) { copy_str(position, new_position ? new_position : ""); }
-    void set_work_hour(float new_hour) { total_work_hour = max(0.0f, new_hour); }
+
+    bool set_id(unsigned int new_id) {
+        if (new_id == 0) {
+            id = get_new_id();
+            return true;
+        }
+        if (new_id <= id_max) {cerr << "aldaa garlaa! set_id\n"; return false; }
+        id_max = new_id;
+        id = new_id;
+        return true;
+    }
+
+    bool set_name(const char* new_name) {
+        if (!new_name) new_name = "";
+        size_t len = strlen(new_name);
+        if (len == 0 || len > 200) {cerr << "aldaa garlaa! set_name\n"; return false; }
+        copy_str(name, new_name);
+        return true;
+    }
+
+    bool set_position(const char* new_position) {
+        if (!new_position) new_position = "";
+        size_t len = strlen(new_position);
+        if (len == 0 || len > 200) {cerr << "aldaa garlaa! set_pos\n"; return false; }
+        copy_str(position, new_position);
+        return true;
+    }
+
+    bool set_work_hour(float new_hour) {
+        if (new_hour < 0.0f || new_hour > 31 * 24) {cerr << "aldaa garlaa! set_hr\n"; return false; }
+        total_work_hour = new_hour;
+        return true;
+    }
+
+    void assign(const Employee &other) {
+        if (this == &other) return;
+        set_id(get_new_id());
+        set_name(other.name);
+        set_position(other.position);
+        set_work_hour(other.total_work_hour);
+    }
 
 private:
     float get_owner_salary() const {
+        if(strcasecmp(position, "zahiral") != 0) return 0.f;
         const float rate = 40000;
         const float extra = 1000000;
         return rate * total_work_hour + extra;
@@ -118,48 +155,46 @@ private:
         delete[] dest;
         dest = new char[need];
         strncpy(dest, src, need);
+        dest[need - 1] = '\0';
     }
 };
 
-bool id_exist(Employee **arr, unsigned int id, int sz) {
-    for(int i = 0; i < sz; i++) {
-        if(arr[i]->get_id() == id) return 1;
-    }
-    return 0;
+bool cmp(const Employee *e1, const Employee *e2)
+{
+    return (strcmp(e1->get_name(), e2->get_name()) < 0);
 }
-int main() {
+void myswap(Employee *&e1, Employee *&e2)
+{
+    Employee *tmp = e1;
+    e1 = e2;
+    e2 = tmp;
+}
+int main()
+{
     cout << "Ajilchni toogo oruulna uu:" << flush;
     int n; cin >> n;
 
     Employee **arr = new Employee*[n];
     for(int i = 0; i < n; i++)
     {
-        unsigned int id;
-        while(true)
+        cout << i + 1 << "-deh Ajilchnii medeelludig oruulna uu" << endl;
+        arr[i] = new Employee;
+        arr[i] -> read();
+    }
+
+    for (int i = 0; i < n - 1; i++)
+    {
+        for (int j = 0; j < n - i - 1; j++)
         {
-            cout << i + 1 << "-deh Ajilchnii medeelludig oruulna uu" << endl;
-            cout << "Dugaar (id): ";
-            cin >> id;
-            if(id_exist(arr, id, i))
-            {
-                cout << "Id burtgeltei baina!!\n";
-                continue;
-            }
-            else break;
+            if (!cmp(arr[j], arr[j + 1])) 
+                myswap(arr[j], arr[j + 1]);
         }
-        arr[i] = new Employee();
-        arr[i] -> set_id(id);
-        arr[i] -> read_rest();
     }
 
-    sort(arr, arr + n, [&](const Employee *e1, const Employee *e2)
-    {
-        return (strcmp(e1->get_name(), e2->get_name()) < 0);
-    });
+    for(int i = 0; i < n; i++) arr[i] -> print();
 
-    for(int i = 0; i < n; i++)
-    {
-        arr[i] -> print();
-    }
-    return 8 >> 13;
+    for(int i = 0; i < n; i++) delete arr[i];
+    delete[] arr;
 }
+
+
